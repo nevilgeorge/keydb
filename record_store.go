@@ -16,18 +16,28 @@ type Record struct {
 	value string
 }
 
+// RecordStore is the core storage engine interface.
+// Underlying implementations can vary (file, memory, other DB, etc.)
 type RecordStore interface {
 	Get(key string) (string, error)
 	Put(key string, value string) error
+	// Generic cleanup task. Defer this method to ensure resources are released.
 	Close() error
 }
 
+// RecordWriter is the interface for writing records to a storage medium.
 type RecordWriter interface {
+	// Needs to return an offset to fetch that record later.
+	// Can abstract "offset" into a generic "identifier" type later if other implementations need it.
 	WriteRecord(record Record) (offset int64, err error)
 	Close() error
 }
 
+// RecordReader is the interface for reading records from a storage medium.
 type RecordReader interface {
+	// Needs to take an offset and return a record.
+	// Can abstract "offset" into a generic "identifier" type later if other implementations need it.
+	// The RecordStore is responsible for mapping keys to offsets/identifiers.
 	ReadRecord(offset int64) (*Record, error)
 	Close() error
 }
